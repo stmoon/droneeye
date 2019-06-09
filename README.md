@@ -18,3 +18,20 @@ Please find the example format of the submission of results for object detection
 [Details Link](http://aiskyeye.com/views/getInfo?loc=6)
   
 ## How to Use It
+
+### Set up the test environment
+
+Before the setting the environment, please use ```virtualenv``` and then install necessary libraries like below
+```
+pip install -r requirement
+```
+
+
+### Submit the result
+
+To submit the result, please use ```test.py``` like below.
+
+```bash
+$ python test.py
+```
+
