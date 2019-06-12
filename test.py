@@ -88,11 +88,19 @@ for batch_i, (imgs_path, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc=
             ## output
             _, fp =  os.path.split(file_path)
             frame_index = os.path.splitext(fp)[0].split('_')[-1]
-
+            
+            print(file_path)
+            print(file_path.split('/')[-2])
+            output_file = open('output/'+file_path.split('/')[-2]+'.txt','a')
             for i in range(len(pred_boxes)) :
                 result = []
                 result.append(int(frame_index))
                 result.append(-1)
-                result += pred_boxes[i].tolist()[:-1]
+                result += list(map(int,pred_boxes[i].tolist()[:-1]))
+                result.append(round(scores[i],4))
                 result.append(int(pred_labels[i]))
-                print(result)
+                result.append(-1)
+                result.append(-1)
+                output_file.write(','.join(str(x) for x in result) + '\n')
+#                print(result)
+            output_file.close()

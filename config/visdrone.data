@@ -1,7 +1,14 @@
 classes=12
 train=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/VisDrone2018-DET-train/train.txt
-valid=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/val/valid.txt
-test=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/val/valid.txt
+#valid=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/val/valid.txt
+# test=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/val/valid.txt
+
+#valid=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/VisDrone2019-DET-val/valid.txt
+#test=/media/stmoon/Data/VisDrone/Task1_Object_Detection_in_Images/VisDrone2019-DET-val/valid.txt
+
+valid=/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val/valid.txt
+test=/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val/valid.txt
+
 names=data/visdrone.names
 backup=backup/
 eval=visdrone
