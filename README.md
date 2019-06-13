@@ -16,6 +16,9 @@ Both the ground truth annotations and the submission of results on test data hav
 Please find the example format of the submission of results for object detection in videos here (BaiduYun|Google Drive)
 
 [Details Link](http://aiskyeye.com/views/getInfo?loc=6)
+
+## Sample Result (20190613)
+![text](https://github.com/stmoon/droneeye/blob/master/docs/sample_result_20190613.png)
   
 ## How to Use It
 
