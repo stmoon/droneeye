@@ -2,7 +2,7 @@ model = dict(
     type = 'm2det',
     input_size = 512,
     init_net = True,
-    pretrained = 'weights/m2det512_vgg.pth', #vgg16_reducedfc.pth',
+    pretrained = False,# 'weights/m2det512_vgg.pth', #vgg16_reducedfc.pth',
     m2det_config = dict(
         backbone = 'vgg16',
         net_family = 'vgg', # vgg includes ['vgg16','vgg19'], res includes ['resnetxxx','resnextxxx']
@@ -12,7 +12,7 @@ model = dict(
         num_scales = 6,
         sfam = False,
         smooth = True,
-        num_classes = 81,
+        num_classes =  12, #81
         ),
     rgb_means = (104, 117, 123),
     p = 0.6,

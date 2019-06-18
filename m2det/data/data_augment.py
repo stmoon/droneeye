@@ -180,7 +180,7 @@ class preproc(object):
             targets = np.zeros((1,5))
             image = preproc_for_test(image, self.resize, self.means)
             return torch.from_numpy(image), targets
-
+        
         image_o = image.copy()
         targets_o = targets.copy()
         height_o, width_o, _ = image_o.shape
@@ -207,7 +207,7 @@ class preproc(object):
         mask_b= np.minimum(b_w, b_h) > 0.01
         boxes_t = boxes[mask_b]
         labels_t = labels[mask_b].copy()
-
+        
         if len(boxes_t)==0:
             image = preproc_for_test(image_o, self.resize, self.means)
             return torch.from_numpy(image),targets_o

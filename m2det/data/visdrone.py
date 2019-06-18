@@ -131,6 +131,9 @@ class VisDroneDetection(data.Dataset):
                     grp_id = path.split('/')[-1].split('.')[0]
                     labels = np.loadtxt(path, delimiter=',')
                     for i in labels :
+                        # change (left, top, width, height) -> (left, top, right, bottom)
+                        i[4] += i[2] 
+                        i[5] += i[3]
                         i = i.tolist()
                         self.insert_anno(grp_id + str(int(i[0])), i[2:6] + [i[7]])
                 except Exception as err:
@@ -157,108 +160,7 @@ class VisDroneDetection(data.Dataset):
                 img, target = self.preproc(img, np.array(self.anno[key]))
             else :
                 img, target = self.preproc(img, np.array([]))
-        print(target.shape)
         return img, target
-
-        '''
-        img_path = self.img_path[index]
-        img = np.array(Image.open(self.img_path[index]))
-        
-        # Handles images with less than three channels
-        while len(img.shape) != 3:
-            index += 1
-            img_path = self.img_files[index % len(self.img_files)].rstrip()
-            img = np.array(Image.open(img_path))
-
-        h, w, _ = img.shape
-        dim_diff = np.abs(h - w)
-        # Upper (left) and lower (right) padding
-        pad1, pad2 = dim_diff // 2, dim_diff - dim_diff // 2
-        # Determine padding
-        pad = ((pad1, pad2), (0, 0), (0, 0)) if h <= w else ((0, 0), (pad1, pad2), (0, 0))
-        # Add padding
-        input_img = np.pad(img, pad, 'constant', constant_values=128) / 255.
-        padded_h, padded_w, _ = input_img.shape
-        # Resize and normalize
-        input_img = resize(input_img, (*self.img_shape, 3), mode='reflect')
-        # Channels-first
-        input_img = np.transpose(input_img, (2, 0, 1))
-        # As pytorch tensor
-        input_img = torch.from_numpy(input_img).float()
-
-        #---------
-        #  Label
-        #  <frame_index>,<target_id>,<bbox_left>,<bbox_top>,<bbox_width>,<bbox_height>,<score>,<object_category>,<truncation>,<occlusion>
-        #---------
-        
-        grp_id = img_path.split('/')[-2]
-        label_path = self._annopath + grp_id + ".txt"
-        labels = None
-        if os.path.exists(label_path):
-            try :
-                labels = np.loadtxt(label_path, delimiter=',', usecols=tuple(range(8))).reshape(-1,8)
-            except:
-                print("ERROR:", label_path)
-        else :
-            print("Not exist", label_path)
-
-        
-        # Fill matrix
-        # input : left, top, width, height (in based on image, not scaled) for visdrone
-        # output: scaled center x, scaled center y, scaled width, scaled height ( 0.0 ~ 1.0)
-        filled_labels = np.zeros((self.max_objects, 5))
-        if labels is not None:
-            # Extract coordinates for unpadded + unscaled image
-            x1 = labels[:,0]
-            y1 = labels[:,1]
-            x2 = labels[:,0] + labels[:,2]
-            y2 = labels[:,1] + labels[:,3]
-            # Adjust for added padding
-            x1 += pad[1][0]
-            y1 += pad[0][0]
-            x2 += pad[1][0]
-            y2 += pad[0][0]
-            # Calculate ratios from coordinates
-            #print(labels[0:2, 0:4])
-            #print(x1[:2], x2[:2], y1[:2], y2[:2])
-            labels[:, 0] = ((x1 + x2) / 2) / padded_w
-            labels[:, 1] = ((y1 + y2) / 2) / padded_h
-            labels[:, 2] = labels[:, 2] / padded_w
-            labels[:, 3] = labels[:, 3] / padded_h
-            #np.set_printoptions(precision=2)
-            #print(labels[0:2, 0:4])
-
-            #print(labels[:5])
- 
-        num_labels = min(self.max_objects, len(labels))
-        filled_labels[:num_labels,0] = labels[:num_labels,5] 
-        filled_labels[:num_labels,1:5] = labels[:num_labels,0:4] 
-        #filled_labels[range(len(labels))[:self.max_objects]] = labels[:self.max_objects]
-        filled_labels = torch.from_numpy(filled_labels)
-        return input_img, filled_labels
-        '''
-
-        #########################################################################
-        '''
-        print(">>>> indxe :", index)
-        img_id = self.ids[index]
-        target = ET.parse(self._annopath % img_id).getroot()
-        img = cv2.imread(self._imgpath % img_id, cv2.IMREAD_COLOR)
-        height, width, _ = img.shape
-
-        if self.target_transform is not None:
-            target = self.target_transform(target)
-
-
-        if self.preproc is not None:
-            img, target = self.preproc(img, target)
-            #print(img.size())
-
-                    # target = self.target_transform(target, width, height)
-        #print(target.shape)
-
-        return img, target
-        '''
 
     def __len__(self):
         return len(self.img_path)
