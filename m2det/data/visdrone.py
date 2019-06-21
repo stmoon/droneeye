@@ -25,12 +25,11 @@ else:
     import xml.etree.ElementTree as ET
 
 
-VOC_CLASSES = ( '__background__', # always index 0
-    'aeroplane', 'bicycle', 'bird', 'boat',
-    'bottle', 'bus', 'car', 'cat', 'chair',
-    'cow', 'diningtable', 'dog', 'horse',
-    'motorbike', 'person', 'pottedplant',
-    'sheep', 'sofa', 'train', 'tvmonitor')
+# (i.e., ignored regions (0), pedestrian (1), people (2), bicycle (3), car (4), van (5), truck (6), tricycle (7), awning-tricycle (8), bus (9), motor (10), others (11))
+VIC_CLASSES = ( 'ignoredregions', # always index 0
+    'pedestrian', 'people', 'bicycle', 'car',
+    'van', 'truck', 'tricycle', 'awning-tricycle',
+    'bus', 'motor', 'others')
 
 # for making bounding boxes pretty
 COLORS = ((255, 0, 0, 128), (0, 255, 0, 128), (0, 0, 255, 128),
@@ -54,7 +53,7 @@ class AnnotationTransform(object):
 
     def __init__(self, class_to_ind=None, keep_difficult=True):
         self.class_to_ind = class_to_ind or dict(
-            zip(VOC_CLASSES, range(len(VOC_CLASSES))))
+            zip(VIC_CLASSES, range(len(VIC_CLASSES))))
         self.keep_difficult = keep_difficult
 
     def __call__(self, target):
@@ -183,8 +182,11 @@ class VisDroneDetection(data.Dataset):
         Return:
             PIL img
         '''
-        img_id = self.ids[index]
-        return cv2.imread(self._imgpath % img_id, cv2.IMREAD_COLOR)
+        img_path = self.img_path[index]
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        return img
+        # img_id = self.ids[index]
+        # return cv2.imread(self._imgpath % img_id, cv2.IMREAD_COLOR)
 
     def pull_anno(self, index):
         '''Returns the original annotation of image at index
@@ -220,8 +222,37 @@ class VisDroneDetection(data.Dataset):
         self._write_voc_results_file(all_boxes)
         self._do_python_eval(output_dir)
         '''
+        self._write_vis_results_file(all_boxes)
+
         pass
 
+    def _write_vis_results_file(self, all_boxes):
+        for cls_ind, cls in enumerate(VIC_CLASSES):
+            cls_ind = cls_ind 
+            if cls == 'ignoredregions' or cls == 'others':
+                continue
+            print('Writing {} VIS results file'.format(cls))
+            for im_ind, img_path in enumerate(self.img_path):
+                f = open('output/'+img_path.split('/')[-2]+'.txt','ta')
+
+                dets = all_boxes[cls_ind][im_ind]
+                if dets == []:
+                    continue
+                for k in range(dets.shape[0]):
+                    frame_index = int(img_path.split('/')[-1][0:-4])
+                    score = dets[k, -1]
+                    object_category = cls_ind
+                    bbox_left = int(dets[k, 0] + 1)
+                    bbox_top = int(dets[k, 1] + 1)
+                    bbox_width = int((dets[k, 2] + 1) - bbox_left)
+                    bbox_height = int((dets[k, 3] + 1) - bbox_top)
+                    f.write('{:d},-1,{:d},{:d},{:d},{:d},{:.1f},{:d},-1,-1\n'
+                        .format(frame_index, bbox_left, bbox_top, bbox_width, bbox_height, score, object_category))
+                    # dets[k, -1] : confidence
+                    # dets[k, 0] + 1 : left
+                    # dets[k, 1] + 1 : top
+                    # dets[k, 2] + 1 : right
+                    # dets[k, 3] + 1 : bottom
 
 def detection_collate(batch):
     """Custom collate fn for dealing with batches of images that have a different

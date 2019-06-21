@@ -6,10 +6,11 @@ from PIL import Image
 import numpy as np
 import glob
 
-data_path = '/home/dongoo/VisDrone2019-VID-val/'
-result_path = '/home/dongoo/VisDrone2019-VID-val-result/'
+data_path = '/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val/'
+result_path = '/home/ldg810/git/droneeye/m2det/output/'
+# sequence = 'uav0000086_00000_v'
 sequence = 'uav0000137_00458_v'
-
+confidence_threshold = 0.1
 
 max_frame = 1
 for filename in glob.iglob(data_path + 'sequences/' + sequence + '/*.jpg',recursive=True):
@@ -57,11 +58,12 @@ while True:
     bbox_top = int(line_data[3])
     img_width = int(line_data[4])
     img_height = int(line_data[5])
+    confidence = float(line_data[6])
     object_category = int(line_data[7])
     # truncation = line_data[8]
     # occlusion = line_data[9]
     # data[object_category].append(math.sqrt(img_height * img_width))
-    ourData.append([frame_index, bbox_left, bbox_top, img_width, img_height, object_category])
+    ourData.append([frame_index, bbox_left, bbox_top, img_width, img_height, object_category, confidence])
 f.close()
 	
 def animate(i):
@@ -80,7 +82,7 @@ def animate(i):
 			ax.add_patch(rect)
 
 	for data in ourData:
-		if data[0] == frame:
+		if data[0] == frame and data[6] >= confidence_threshold:
 			rect = patches.Rectangle((data[1],data[2]),data[3],data[4],linewidth=1,edgecolor='r',facecolor='none')
 			ax.text(data[1] + 3, data[2] - 5, str(data[5]), color='r', fontsize=13, fontweight='bold')
 			ax.add_patch(rect)

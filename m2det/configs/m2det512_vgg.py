@@ -2,7 +2,7 @@ model = dict(
     type = 'm2det',
     input_size = 512,
     init_net = True,
-    pretrained = False,# 'weights/m2det512_vgg.pth', #vgg16_reducedfc.pth',
+    pretrained = '/media/stmoon/Data/droneeye_weight/M2Det_VIS_size512_netvgg16_epoch70.pth', #vgg16_reducedfc.pth',
     m2det_config = dict(
         backbone = 'vgg16',
         net_family = 'vgg', # vgg includes ['vgg16','vgg19'], res includes ['resnetxxx','resnextxxx']
@@ -63,7 +63,7 @@ optimizer = dict(type='SGD', momentum=0.9, weight_decay=0.0005)
 dataset = dict(
     VIS = dict(
         train_sets = ['VisDrone2019-VID-train'],
-        eval_sets = [('2007', 'test')],
+        eval_sets = ['VisDrone2019-VID-val-rot'],
         ),
     VOC = dict(
         train_sets = [('2007', 'trainval'), ('2012', 'trainval')],
