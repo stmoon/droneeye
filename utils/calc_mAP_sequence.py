@@ -2,14 +2,37 @@ import time
 from PIL import Image
 import numpy as np
 import glob
+import os
+import shutil
+import argparse
 
+## How to use
+# modify 3 variables (data_path, result_path, sequence)
+# python calc_mAP_sequence
+
+# Follwing 3 variables should be customized.
 data_path = '/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val/'
 result_path = '/home/ldg810/git/droneeye/m2det/output/'
-output_path = '/home/ldg810/git/mAP/input/'
 sequence = 'uav0000137_00458_v'
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--sequence', nargs='+', type=str, help="which sequence to analyse")
+args = parser.parse_args()
+
+if args.sequence is not None:
+	sequence = args.sequence[0]
+
+print("START Calculating mAP of sequence " + sequence)
+
+output_path = os.path.dirname(os.path.realpath(__file__)) + '/mAP/input/'
 categories = ['','pedestrian','people','bicycle','car','van','truck','tricycle','awning-tricycle','bus','motor','']
 
+try:
+	shutil.rmtree(output_path + 'ground-truth')
+except FileNotFoundError:
+	print("No ground-truth folder pre-exist")
+os.mkdir(output_path + 'ground-truth')
+print('Generating ground-truth txt files...')
 f = open(data_path + 'annotations/' + sequence + '.txt', 'r')
 gtData = []
 while True:
@@ -20,25 +43,24 @@ while True:
     line_data = line.split(',')
     
     frame_index = int(line_data[0])
-    # target_id = line_data[1]
     bbox_left= int(line_data[2])
     bbox_top = int(line_data[3])
     img_width = int(line_data[4])
     img_height = int(line_data[5])
     object_category = categories[int(line_data[7])]
-    # truncation = line_data[8]
-    # occlusion = line_data[9]
-    # data[object_category].append(math.sqrt(img_height * img_width))
-    # gtData.append([frame_index, bbox_left, bbox_top, img_width, img_height, object_category])
     if int(line_data[7]) >= 1 and int(line_data[7]) <= 10:
 	    output_file = open(output_path + 'ground-truth/{:07d}.txt'.format(frame_index),'ta')
-	    # print(object_category, bbox_left, bbox_top, img_width, img_height)
 	    output_line = object_category + ' ' + str(bbox_left) + ' ' + str(bbox_top) + ' ' + str(bbox_left + img_width) + ' ' + str(bbox_top + img_height) + '\n'
 	    output_file.write(output_line)
 	    output_file.close()
 f.close()
 
-
+try:
+	shutil.rmtree(output_path + 'detection-results/')
+except FileNotFoundError:
+	print("No detection-results folder pre-exist")
+os.mkdir(output_path + 'detection-results')
+print('Generating detection-result txt files...')
 f = open(result_path + sequence + '.txt', 'r')
 ourData = []
 while True:
@@ -49,21 +71,18 @@ while True:
     line_data = line.split(',')
     
     frame_index = int(line_data[0])
-    # target_id = line_data[1]
     bbox_left= int(line_data[2])
     bbox_top = int(line_data[3])
     img_width = int(line_data[4])
     img_height = int(line_data[5])
     confidence = line_data[6]
     object_category = categories[int(line_data[7])]
-    # truncation = line_data[8]
-    # occlusion = line_data[9]
-    # data[object_category].append(math.sqrt(img_height * img_width))
-    # gtData.append([frame_index, bbox_left, bbox_top, img_width, img_height, object_category])
     if int(line_data[7]) >= 1 and int(line_data[7]) <= 10:
 	    output_file = open(output_path + 'detection-results/{:07d}.txt'.format(frame_index),'ta')
-	    # print(object_category, bbox_left, bbox_top, img_width, img_height)
 	    output_line = object_category + ' ' + confidence + ' ' + str(bbox_left) + ' ' + str(bbox_top) + ' ' + str(bbox_left + img_width) + ' ' + str(bbox_top + img_height) + '\n'
 	    output_file.write(output_line)
 	    output_file.close()
 f.close()
+
+print('Calculating mAP...')
+os.system('python '+os.path.dirname(os.path.realpath(__file__))+'/mAP/main.py -na')
