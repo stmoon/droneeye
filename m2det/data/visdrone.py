@@ -116,11 +116,6 @@ class VisDroneDetection(data.Dataset):
         self.img_shape = (512, 512)     # TODO : set the image size automatically
         self.anno = dict()
 
-        # Image path
-        image_sets = glob.glob(root+image_sets[0]+'/sequences/*')
-        for path in image_sets :
-            self.img_path += glob.glob(path+'/*.jpg')
-
         # Label
         # <frame_index>,<target_id>,<bbox_left>,<bbox_top>,<bbox_width>,<bbox_height>,<score>,<object_category>,<truncation>,<occlusion>
         anno_paths = glob.glob(self.annopath + '/*.txt')
@@ -139,6 +134,20 @@ class VisDroneDetection(data.Dataset):
                 except Exception as err:
                     print("OS error: {0}".format(err))
         
+        # Image path
+        image_sets = glob.glob(root+image_sets[0]+'/sequences/*')
+        for grp_path in image_sets :
+            sub_path = glob.glob(grp_path+'/*.jpg')
+            for path in sub_path :
+                # extract group and sub id
+                grp_id = path.split('/')[-2]
+                sub_id = path.split('/')[-1].split(".")[0]
+                # check annotation and add image if the image has annotation
+                key = grp_id + str(int(sub_id))
+                if key in self.anno :
+                    self.img_path += [path]
+                else :
+                    print('not exist', key)
 
     def __getitem__(self, index):
 
