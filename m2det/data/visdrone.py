@@ -130,6 +130,7 @@ class VisDroneDetection(data.Dataset):
                     grp_id = path.split('/')[-1].split('.')[0]
                     labels = np.loadtxt(path, delimiter=',')
                     for i in labels :
+                        object_category = i[7]
                         # change (left, top, width, height) -> (left, top, right, bottom)
                         i[4] += i[2] 
                         i[5] += i[3]
@@ -138,7 +139,6 @@ class VisDroneDetection(data.Dataset):
                 except Exception as err:
                     print("OS error: {0}".format(err))
         
- 
 
     def __getitem__(self, index):
 
@@ -150,14 +150,21 @@ class VisDroneDetection(data.Dataset):
         grp_id = img_path.split('/')[-2]
         seq_id = img_path.split('/')[-1].split(".")[0]
 
-        #if self.target_transform is not None:
-        #    target = self.target_transform(target)
-        
         if self.preproc is not None:
             key = grp_id + str(int(seq_id))
             if key in self.anno :
+                # remove the area using unused labels (0: ignoredregions, 11: others)
+                for i in self.anno[key] : 
+                    i = list(map(int, i))
+
+                    if i[4] != 0 and i[4] != 11 :
+                        cv2.rectangle(img,(i[0],i[1]),(i[2]-i[0],i[3]-i[1]),(0,0,0),-1)
+                        self.anno[key].remove(i)
+                 
                 img, target = self.preproc(img, np.array(self.anno[key]))
             else :
+                print("EMPTY: ", key, flush=True)
+                
                 img, target = self.preproc(img, np.array([]))
         return img, target
 
