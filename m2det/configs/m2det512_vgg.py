@@ -36,7 +36,7 @@ train_cfg = dict(
         VOC = [100, 150, 200, 250, 300], # unsolve
         VIS = [100, 150, 200, 250, 300], # TODO: check it
         ),
-    print_epochs = 10,
+    print_epochs = 1,
     num_workers= 8,
     )
 
