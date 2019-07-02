@@ -14,6 +14,7 @@ import argparse
 data_path = '/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val/'
 result_path = '/home/ldg810/git/droneeye/m2det/output/'
 sequence = 'uav0000137_00458_v'
+min_confidence_to_calc_mAP = 0.0
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--sequence', nargs='+', type=str, help="which sequence to analyse")
@@ -23,6 +24,11 @@ if args.sequence is not None:
 	sequence = args.sequence[0]
 
 print("START Calculating mAP of sequence " + sequence)
+
+try:
+	os.mkdir(os.path.dirname(os.path.realpath(__file__)) + '/mAP/input')
+except FileExistsError:
+	print("input folder already exist (OK)")
 
 output_path = os.path.dirname(os.path.realpath(__file__)) + '/mAP/input/'
 categories = ['','pedestrian','people','bicycle','car','van','truck','tricycle','awning-tricycle','bus','motor','']
@@ -77,7 +83,7 @@ while True:
     img_height = int(line_data[5])
     confidence = line_data[6]
     object_category = categories[int(line_data[7])]
-    if int(line_data[7]) >= 1 and int(line_data[7]) <= 10:
+    if int(line_data[7]) >= 1 and int(line_data[7]) <= 10 and float(confidence) >= min_confidence_to_calc_mAP:
 	    output_file = open(output_path + 'detection-results/{:07d}.txt'.format(frame_index),'ta')
 	    output_line = object_category + ' ' + confidence + ' ' + str(bbox_left) + ' ' + str(bbox_top) + ' ' + str(bbox_left + img_width) + ' ' + str(bbox_top + img_height) + '\n'
 	    output_file.write(output_line)
@@ -85,4 +91,4 @@ while True:
 f.close()
 
 print('Calculating mAP...')
-os.system('python '+os.path.dirname(os.path.realpath(__file__))+'/mAP/main.py -na')
+os.system('python '+os.path.dirname(os.path.realpath(__file__))+'/mAP/main.py -na -np')
