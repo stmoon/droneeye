@@ -33,3 +33,4 @@ venv.bak/
 tags
 weights
 env
+logs

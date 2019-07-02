@@ -36,56 +36,6 @@ COLORS = ((255, 0, 0, 128), (0, 255, 0, 128), (0, 0, 255, 128),
           (0, 255, 255, 128), (255, 0, 255, 128), (255, 255, 0, 128))
 
 
-
-class AnnotationTransform(object):
-
-    """Transforms a VOC annotation into a Tensor of bbox coords and label index
-    Initilized with a dictionary lookup of classnames to indexes
-
-    Arguments:
-        class_to_ind (dict, optional): dictionary lookup of classnames -> indexes
-            (default: alphabetic indexing of VOC's 20 classes)
-        keep_difficult (bool, optional): keep difficult instances or not
-            (default: False)
-        height (int): height
-        width (int): width
-    """
-
-    def __init__(self, class_to_ind=None, keep_difficult=True):
-        self.class_to_ind = class_to_ind or dict(
-            zip(VIC_CLASSES, range(len(VIC_CLASSES))))
-        self.keep_difficult = keep_difficult
-
-    def __call__(self, target):
-        """
-        Arguments:
-            target (annotation) : the target annotation to be made usable
-                will be an ET.Element
-        Returns:
-            a list containing lists of bounding boxes  [bbox coords, class name]
-        """
-        res = np.empty((0,5)) 
-        for obj in target.iter('object'):
-            difficult = int(obj.find('difficult').text) == 1
-            if not self.keep_difficult and difficult:
-                continue
-            name = obj.find('name').text.lower().strip()
-            bbox = obj.find('bndbox')
-
-            pts = ['xmin', 'ymin', 'xmax', 'ymax']
-            bndbox = []
-            for i, pt in enumerate(pts):
-                cur_pt = int(bbox.find(pt).text) - 1
-                # scale height or width
-                #cur_pt = cur_pt / width if i % 2 == 0 else cur_pt / height
-                bndbox.append(cur_pt)
-            label_idx = self.class_to_ind[name]
-            bndbox.append(label_idx)
-            res = np.vstack((res,bndbox))  # [xmin, ymin, xmax, ymax, label_ind]
-            # img_id = target.find('filename').text[:-4]
-
-        return res  # [[xmin, ymin, xmax, ymax, label_ind], ... ]
-
 class VisDroneDetection(data.Dataset):
 
     """
@@ -104,22 +54,17 @@ class VisDroneDetection(data.Dataset):
         dataset_name (string, optional): which dataset to load
             (default: 'VOC2007')
     """
-    def __init__(self, root, image_sets, preproc=None, target_transform=AnnotationTransform(),
+    def __init__(self, root, image_sets, preproc=None,
                  dataset_name='VisDrone'):
         self.root = root
         self.image_set = image_sets
         self.preproc = preproc
-        self.target_transform = target_transform
+        #self.target_transform = target_transform
         self.name = dataset_name
         self.annopath = root+image_sets[0]+'/annotations/' 
         self.img_path = list()
         self.img_shape = (512, 512)     # TODO : set the image size automatically
         self.anno = dict()
-
-        # Image path
-        image_sets = glob.glob(root+image_sets[0]+'/sequences/*')
-        for path in image_sets :
-            self.img_path += glob.glob(path+'/*.jpg')
 
         # Label
         # <frame_index>,<target_id>,<bbox_left>,<bbox_top>,<bbox_width>,<bbox_height>,<score>,<object_category>,<truncation>,<occlusion>
@@ -130,6 +75,7 @@ class VisDroneDetection(data.Dataset):
                     grp_id = path.split('/')[-1].split('.')[0]
                     labels = np.loadtxt(path, delimiter=',')
                     for i in labels :
+                        object_category = i[7]
                         # change (left, top, width, height) -> (left, top, right, bottom)
                         i[4] += i[2] 
                         i[5] += i[3]
@@ -138,7 +84,20 @@ class VisDroneDetection(data.Dataset):
                 except Exception as err:
                     print("OS error: {0}".format(err))
         
- 
+        # Image path
+        image_sets = glob.glob(root+image_sets[0]+'/sequences/*')
+        for grp_path in image_sets :
+            sub_path = glob.glob(grp_path+'/*.jpg')
+            for path in sub_path :
+                # extract group and sub id
+                grp_id = path.split('/')[-2]
+                sub_id = path.split('/')[-1].split(".")[0]
+                # check annotation and add image if the image has annotation
+                key = grp_id + str(int(sub_id))
+                if key in self.anno :
+                    self.img_path += [path]
+                else :
+                    print('not exist', key)
 
     def __getitem__(self, index):
 
@@ -150,19 +109,38 @@ class VisDroneDetection(data.Dataset):
         grp_id = img_path.split('/')[-2]
         seq_id = img_path.split('/')[-1].split(".")[0]
 
-        #if self.target_transform is not None:
-        #    target = self.target_transform(target)
-        
         if self.preproc is not None:
             key = grp_id + str(int(seq_id))
             if key in self.anno :
+                # remove the area using unused labels (0: ignoredregions, 11: others)
+                for i in self.anno[key].copy() : 
+                    i = list(map(int, i))
+
+                    if i[4] == 0 or i[4] == 11 :
+                        cv2.rectangle(img,(i[0],i[1]),(i[2]-i[0],i[3]-i[1]),(0,0,0),-1)
+                        self.anno[key].remove(i)
+
                 img, target = self.preproc(img, np.array(self.anno[key]))
             else :
+                print("EMPTY: ", key, flush=True)
                 img, target = self.preproc(img, np.array([]))
+        else :
+            print("ERROR:  There is no preproc method")
+
         return img, target
 
     def __len__(self):
         return len(self.img_path)
+
+    def summary_anno(self, target, title="TEST") :
+        total = {}
+        for t in target :
+            cls = int(t[-1])
+            if cls in total : 
+                total[cls] +=  1
+            else :
+                total[cls] =  1
+        print(title, ': ', sorted(total.items()))
 
     def insert_anno(self, key, value) :
         if not key in self.anno :

@@ -21,7 +21,7 @@ parser.add_argument('-d', '--dataset', default='VIS', help='VIS, VOC, COCO datas
 parser.add_argument('--ngpu', default=1, type=int, help='gpus')
 parser.add_argument('--resume_net', default=None, help='resume net for retraining')
 parser.add_argument('--resume_epoch', default=0, type=int, help='resume iter for retraining')
-parser.add_argument('-t', '--tensorboard', type=bool, default=False, help='Use tensorborad to show the Loss Graph')
+parser.add_argument('-t', '--tensorboard', type=bool, default=True, help='Use tensorborad to show the Loss Graph')
 args = parser.parse_args()
 
 print_info('----------------------------------------------------------------------\n'
@@ -83,8 +83,21 @@ if __name__ == '__main__':
         if cfg.train_cfg.cuda:
             images = images.cuda()
             targets = [anno.cuda() for anno in targets]
+        
+        ## TEST
+        total = {}
+        for t in targets :
+            for i in t:
+                cls = int(i[-1])
+                if cls in total : 
+                    total[cls] +=  1
+                else :
+                    total[cls] =  1
+        
+        print(sorted(total.items()))
 
         out = net(images)
+        print(out[0].shape, out[1].shape)
         optimizer.zero_grad()
         loss_l, loss_c = criterion(out, priors, targets)
         loss = loss_l + loss_c
@@ -95,5 +108,6 @@ if __name__ == '__main__':
         optimizer.step()
         load_t1 = time.time()
         print_train_log(iteration, cfg.train_cfg.print_epochs,
-                            [time.ctime(),epoch,iteration%epoch_size,epoch_size,iteration,loss_l.item(),loss_c.item(),load_t1-load_t0,lr])
+                    [time.ctime(),epoch,iteration%epoch_size,epoch_size,iteration,loss_l.item(),loss_c.item(),load_t1-load_t0,lr])
     save_checkpoint(net, cfg, final=True, datasetname=args.dataset,epoch=-1)
+
