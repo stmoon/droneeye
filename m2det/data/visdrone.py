@@ -117,7 +117,9 @@ class VisDroneDetection(data.Dataset):
                     i = list(map(int, i))
 
                     if i[4] == 0 or i[4] == 11 :
-                        cv2.rectangle(img,(i[0],i[1]),(i[2]-i[0],i[3]-i[1]),(0,0,0),-1)
+                        u = tuple([img[:,:,ix].mean() for ix in range(3)])
+                        u = tuple(map(int,u))
+                        cv2.rectangle(img,(i[0],i[1]),(i[2],i[3]),u,-1)
                         self.anno[key].remove(i)
 
                 img, target = self.preproc(img, np.array(self.anno[key]))
