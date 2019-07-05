@@ -180,7 +180,7 @@ class preproc(object):
             targets = np.zeros((1,5))
             image = preproc_for_test(image, self.resize, self.means)
             return torch.from_numpy(image), targets
-        
+
         image_o = image.copy()
         targets_o = targets.copy()
         height_o, width_o, _ = image_o.shape
@@ -190,12 +190,11 @@ class preproc(object):
         boxes_o[:, 1::2] /= height_o
         labels_o = np.expand_dims(labels_o,1)
         targets_o = np.hstack((boxes_o,labels_o))
-
+        
         image_t, boxes, labels = _crop(image, boxes, labels)
         image_t = _distort(image_t)
-        image_t, boxes = _expand(image_t, boxes, self.means, self.p)
+        #image_t, boxes = _expand(image_t, boxes, self.means, self.p)
         image_t, boxes = _mirror(image_t, boxes)
-        #image_t, boxes = _mirror(image, boxes)
 
         height, width, _ = image_t.shape
         image_t = preproc_for_test(image_t, self.resize, self.means)
@@ -216,8 +215,6 @@ class preproc(object):
         targets_t = np.hstack((boxes_t,labels_t))
 
         return torch.from_numpy(image_t), targets_t
-
-
 
 class BaseTransform(object):
     """Defines the transformations that should be applied to test PIL image
