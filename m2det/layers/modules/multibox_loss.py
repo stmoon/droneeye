@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from utils.box_utils import match, log_sum_exp
+import ipdb  as pdb
+#import web_pdb as pdb
+
 GPU = False
 if torch.cuda.is_available():
     GPU = True
@@ -44,7 +47,7 @@ class MultiBoxLoss(nn.Module):
         self.neg_overlap = neg_overlap
         self.variance = [0.1,0.2]
 
-    def forward(self, predictions, priors, targets):
+    def forward(self, predictions, priors, targets, iteration):
         """Multibox Loss
         Args:
             predictions (tuple): A tuple containing loc preds, conf preds,
@@ -112,4 +115,14 @@ class MultiBoxLoss(nn.Module):
         N = max(num_pos.data.sum().float(), 1)
         loss_l/=N
         loss_c/=N
-        return loss_l,loss_c
+        
+        # TEST
+        #if iteration > 40 and loss_c > 5.0 :
+        #    pdb.set_trace()
+
+        # TEST
+        num_target = 0
+        for i in range(4) :
+            num_target += targets[i].shape[0]
+
+        return loss_l, loss_c, num_pos.sum().item(), num_neg.sum().item(), num_target, loc_p, loc_t, conf_p, targets_weighted

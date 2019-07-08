@@ -14,6 +14,7 @@ from layers.functions import PriorBox
 from data import detection_collate
 from configs.CC import Config
 from utils.core import *
+import ipdb as pdb
 
 parser = argparse.ArgumentParser(description='M2Det Training')
 parser.add_argument('-c', '--config', default='configs/m2det320_vgg16.py')
@@ -65,6 +66,10 @@ if __name__ == '__main__':
         start_iter = args.resume_epoch * epoch_size
     else:
         start_iter = 0
+
+    prev_loss_c = 0.0
+    prev_loss_l = 0.0
+
     for iteration in range(start_iter, max_iter):
         if iteration % epoch_size == 0:
             batch_iterator = iter(data.DataLoader(dataset, 
@@ -84,6 +89,7 @@ if __name__ == '__main__':
             images = images.cuda()
             targets = [anno.cuda() for anno in targets]
         
+
         ## TEST
         total = {}
         for t in targets :
@@ -95,19 +101,26 @@ if __name__ == '__main__':
                     total[cls] =  1
         
         print(sorted(total.items()))
-
         out = net(images)
-        print(out[0].shape, out[1].shape)
         optimizer.zero_grad()
-        loss_l, loss_c = criterion(out, priors, targets)
+        loss_l, loss_c, num_pred, num_neg, num_gt, loc_p, loc_t, conf_p, conf_t = criterion(out, priors, targets, iteration)
         loss = loss_l + loss_c
         write_logger({'loc_loss':loss_l.item(),
                       'conf_loss':loss_c.item(),
-                      'loss':loss.item()},logger,iteration,status=args.tensorboard)
+                      'loss':loss.item(),
+                      'num_pred':num_pred,
+                      'num_neg':num_neg,
+                      'num_gt':num_gt},logger,iteration,status=args.tensorboard)
+
+        ## TEST
+        #if iteration > 10  and (loss_c - prev_loss_c > 1.0 or  loss_l - prev_loss_l > 1.0 ) :
+        #    pdb.set_trace()
+
+        prev_loss_c = loss_c
+        prev_loss_l = loss_l
+        
         loss.backward()
         optimizer.step()
         load_t1 = time.time()
         print_train_log(iteration, cfg.train_cfg.print_epochs,
                     [time.ctime(),epoch,iteration%epoch_size,epoch_size,iteration,loss_l.item(),loss_c.item(),load_t1-load_t0,lr])
-    save_checkpoint(net, cfg, final=True, datasetname=args.dataset,epoch=-1)
-
