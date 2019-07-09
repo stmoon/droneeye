@@ -104,7 +104,7 @@ def get_dataloader(cfg, dataset, setname='train_sets'):
         #                           getattr(cfg.dataset, dataset)[setname], _preproc)
     else:
         dataset = _Dataloader_function(rootpath,
-                                   getattr(cfg.dataset, dataset)[setname], None)
+                                   getattr(cfg.dataset, dataset)[setname], None, split=cfg.split)
         #dataset = _Dataloader_function(cfg.COCOroot if dataset == 'COCO' else cfg.VOCroot,
         #                           getattr(cfg.dataset, dataset)[setname], None)
     return dataset

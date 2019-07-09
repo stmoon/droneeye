@@ -11,8 +11,9 @@ import argparse
 # python calc_mAP_sequence
 
 # Follwing 3 variables should be customized.
-data_path = '/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val/'
+data_path = '/media/stmoon/Data/VisDrone/Task2_Object_Detection_in_Videos/VisDrone2019-VID-val-splittest/'
 result_path = '/home/ldg810/git/droneeye/m2det/output/'
+# sequence = 'uav0000086_00000_v'
 sequence = 'uav0000137_00458_v'
 min_confidence_to_calc_mAP = 0.0
 

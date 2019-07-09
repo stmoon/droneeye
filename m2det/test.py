@@ -20,6 +20,7 @@ parser.add_argument('-c', '--config', default='configs/m2det512_vgg.py', type=st
 parser.add_argument('-d', '--dataset', default='VIS', help='VIS or VOC or COCO version')
 parser.add_argument('-m', '--trained_model', default='/media/stmoon/Data/droneeye_weight/M2Det_VIS_size512_netvgg16_epoch70.pth', type=str, help='Trained state_dict file path to open')
 parser.add_argument('--test', action='store_true', help='to submit a test file')
+parser.add_argument('--split', action='store_true', help='split test image or not')
 args = parser.parse_args()
 
 print_info('----------------------------------------------------------------------\n'
@@ -80,6 +81,7 @@ if __name__ == '__main__':
     print_info('===> Finished constructing and loading model',['yellow','bold'])
     net.eval()
     _set = 'eval_sets' if not args.test else 'test_sets'
+    cfg.split = args.split
     testset = get_dataloader(cfg, args.dataset, _set)
     if cfg.test_cfg.cuda:
         net = net.cuda()
