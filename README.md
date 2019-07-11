@@ -38,6 +38,8 @@ START Calculating mAP of sequence uav0000086_00000_v
 
 mAP = 30.26%
 
+![text](https://github.com/stmoon/droneeye/blob/master/docs/nms_w_split.png)
+
   
 ## How to Use It
 
