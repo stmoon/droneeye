@@ -26,17 +26,40 @@ Please find the example format of the submission of results for object detection
 ![text](https://github.com/stmoon/droneeye/blob/master/docs/sample_result_20190613.png)
 
 ## Sample mAP Result (20190711) for a val sequence
-START Calculating mAP of sequence uav0000086_00000_v
+START Calculating mAP of sequence uav0000137_00458_v (without split)
 
-48.99% = bicycle AP 
+8.83% = bicycle AP 
 
-0.35% = motor AP 
+63.49% = car AP 
 
-47.88% = pedestrian AP 
+22.67% = motor AP 
 
-23.83% = people AP 
+29.45% = pedestrian AP 
 
-mAP = 30.26%
+33.63% = people AP 
+
+4.38% = van AP 
+
+mAP = 27.07%
+
+![text](https://github.com/stmoon/droneeye/blob/master/docs/wosplit.png)
+
+START Calculating mAP of sequence uav0000137_00458_v (with split)
+
+26.48% = bicycle AP 
+
+50.55% = car AP 
+
+28.09% = motor AP 
+
+30.07% = pedestrian AP 
+
+43.15% = people AP 
+
+19.91% = van AP 
+
+mAP = 33.04%
+
 
 ![text](https://github.com/stmoon/droneeye/blob/master/docs/nms_w_split.png)
 
