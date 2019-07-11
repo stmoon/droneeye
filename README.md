@@ -27,15 +27,17 @@ Please find the example format of the submission of results for object detection
 
 ## Sample mAP Result (20190711) for a val sequence
 START Calculating mAP of sequence uav0000086_00000_v
-input folder already exist (OK)
-Generating ground-truth txt files...
-Generating detection-result txt files...
-Calculating mAP...
+
 48.99% = bicycle AP 
+
 0.35% = motor AP 
+
 47.88% = pedestrian AP 
+
 23.83% = people AP 
+
 mAP = 30.26%
+
   
 ## How to Use It
 
